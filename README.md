@@ -7,7 +7,7 @@
 
 ---
 
-## 📜 Concept & Core Gameplay
+## Concept & Core Gameplay
 
 At its heart, *Trade Routes* is a game of economic strategy, negotiation, and luck. You start with a modest purse of gold and must navigate the outer rim of the board by rolling dice. 
 
@@ -28,7 +28,7 @@ At its heart, *Trade Routes* is a game of economic strategy, negotiation, and lu
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 This project was built from the ground up using a modern, highly responsive, and real-time capable web stack.
 
@@ -48,7 +48,7 @@ This project was built from the ground up using a modern, highly responsive, and
 
 ---
 
-## ✨ Features & Recent Updates
+## Features & Recent Updates
 
 - **Multilingual Support (EN / हिन्दी)**: Full localization system built-in! Switch seamlessly between English and Hindi for all UI elements, historical facts, and modal dialogues. 
 - **Interactive Educational Cards**: Property cards feature a smooth 3D flip transform. Tapping any property on the board flips the card to reveal historical facts and context about the ancient city.
@@ -59,7 +59,7 @@ This project was built from the ground up using a modern, highly responsive, and
 
 ---
 
-## 🚀 Getting Started Locally
+## Getting Started Locally
 
 1. **Install dependencies:**
    ```bash
@@ -83,7 +83,7 @@ This project was built from the ground up using a modern, highly responsive, and
 
 ---
 
-## 🚀 Deployment Instructions (Vercel)
+## Deployment Instructions (Vercel)
 
 This project is optimized for deployment on Vercel.
 

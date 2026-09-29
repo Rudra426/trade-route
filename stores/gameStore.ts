@@ -54,11 +54,12 @@ interface GameStore extends GameState {
 export const useGameStore = create<GameStore>()(
   persist(
     (originalSet, get) => {
-      const set: typeof originalSet = (partial, replace) => {
+      const set: typeof originalSet = (partial) => {
         originalSet((state) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const nextState = typeof partial === 'function' ? (partial as any)(state) : partial;
           return { ...nextState, version: (state.version || 0) + 1 };
-        }, replace);
+        });
       };
 
       return {
