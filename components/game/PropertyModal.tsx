@@ -10,9 +10,11 @@ import { useGameStore } from "@/stores/gameStore"
 import { boardSpaces } from "@/data/boardSpaces"
 
 import { useSearchParams } from 'next/navigation'
+import { useTranslation } from '@/hooks/useTranslation'
 
 export function PropertyModal() {
   const { phase, buyProperty, skipProperty, players, currentPlayerIndex } = useGameStore();
+  const { t, tCity } = useTranslation();
   const searchParams = useSearchParams();
   const playerName = searchParams.get('player');
   const player = players[currentPlayerIndex];
@@ -35,13 +37,13 @@ export function PropertyModal() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Unclaimed Territory
+            {t('unclaimedTerritory')}
           </DialogTitle>
         </DialogHeader>
         
         <div className="py-4 flex flex-col items-center space-y-4">
           <div className="text-center">
-            <h2 className="text-4xl font-black text-terracotta drop-shadow-sm font-serif">{space.name}</h2>
+            <h2 className="text-4xl font-black text-terracotta drop-shadow-sm font-serif">{tCity(space.name)}</h2>
             {space.historicalFact ? (
               <div className="mt-4 px-4 py-3 border-l-2 border-leather/50 bg-sandstone-light text-left shadow-inner">
                 <p className="text-xs font-bold text-leather uppercase tracking-wider mb-1">Historical Context</p>
@@ -76,14 +78,14 @@ export function PropertyModal() {
                 onClick={skipProperty}
                 className="flex-1"
               >
-                Decline
+                {t('decline')}
               </Button>
               <Button 
                 onClick={buyProperty}
                 disabled={!canAfford}
                 className="flex-1"
               >
-                {canAfford ? 'Acquire Title' : 'Cannot Afford'}
+                {canAfford ? t('acquireTitle') : t('bankruptPrompt')}
               </Button>
             </div>
           ) : (

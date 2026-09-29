@@ -37,7 +37,6 @@ export function BuildModal() {
   });
 
   const completeGroups = Object.keys(groupCounts).filter(g => groupCounts[g] === totalInGroup[g]);
-  const upgradeableSpaces = ownedSpaces.filter(s => s.colorGroup && completeGroups.includes(s.colorGroup));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -67,7 +66,7 @@ export function BuildModal() {
               const canAffordBuild = space.upgradeCost ? player.money >= space.upgradeCost : false;
               const isMaxed = currentLevel >= maxLevel;
               const canBuild = space.colorGroup && completeGroups.includes(space.colorGroup);
-              const isMortgaged = player.mortgagedProperties.includes(space.id);
+              const isMortgaged = (player.mortgagedProperties || []).includes(space.id);
 
               const levelNames = ['Empty', 'Workshop', 'Warehouse', 'Trade Hall', 'Caravanserai', 'Grand Palace'];
               const currentBuildingName = isMortgaged ? 'Mortgaged' : levelNames[Math.min(currentLevel, levelNames.length - 1)];

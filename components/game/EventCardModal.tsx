@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button"
 import { useGameStore } from "@/stores/gameStore"
 import { useSearchParams } from "next/navigation"
 import { Scroll } from "lucide-react"
+import { useTranslation } from "@/hooks/useTranslation"
 
 export function EventCardModal() {
   const { phase, currentEventCard, resolveEventCard, players, currentPlayerIndex } = useGameStore();
+  const { t, tEvent, tCity } = useTranslation();
   const searchParams = useSearchParams();
   const playerName = searchParams.get('player');
   const player = players[currentPlayerIndex];
@@ -21,6 +23,8 @@ export function EventCardModal() {
 
   if (!currentEventCard) return null;
   if (!isMyTurn && player?.isAI) return null;
+
+  const eventData = currentEventCard ? tEvent(currentEventCard.id) : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -37,7 +41,7 @@ export function EventCardModal() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Caravan Event
+            {tCity('Caravan Event')}
           </DialogTitle>
         </DialogHeader>
         
@@ -47,9 +51,9 @@ export function EventCardModal() {
           </div>
           
           <div className="text-center space-y-4">
-            <h2 className="text-3xl font-black text-leather leading-tight px-2">{currentEventCard.title}</h2>
+            <h2 className="text-3xl font-black text-leather leading-tight px-2">{eventData?.title}</h2>
             <p className="text-lg text-leather/80 italic px-4 font-semibold font-serif">
-              &quot;{currentEventCard.description}&quot;
+              &quot;{eventData?.description}&quot;
             </p>
             {currentEventCard.historicalBasis && (
               <div className="mt-4 px-4 py-3 border-l-2 border-leather/50 bg-sandstone-light text-left shadow-inner">
@@ -74,7 +78,7 @@ export function EventCardModal() {
               }}
               className="w-full"
             >
-              Accept Fate
+              {t('acceptFate')}
             </Button>
           ) : (
             <div className="w-full text-center text-leather font-bold py-3 bg-sandstone-light border-2 border-leather/30 uppercase tracking-wider">

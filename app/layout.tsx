@@ -3,6 +3,7 @@ import { Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { LanguageSyncer } from "@/components/LanguageSyncer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-serif" });
@@ -26,8 +27,9 @@ export default function RootLayout({
           cinzel.variable
         )}
       >
+        <LanguageSyncer />
         {children}
-        <Toaster theme="dark" toastOptions={{ className: 'font-serif border-[#8b5a2b] bg-[#e7d5b3] text-[#4a3219]' }} />
+        <Toaster theme="dark" position="top-left" visibleToasts={3} toastOptions={{ className: 'font-serif border-[#8b5a2b] bg-[#e7d5b3] text-[#4a3219]' }} />
       </body>
     </html>
   );

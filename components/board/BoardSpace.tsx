@@ -2,7 +2,7 @@ import { BoardSpace as IBoardSpace } from '@/types/board';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/stores/gameStore';
 import { useState } from 'react';
-import { placeFacts } from '@/data/placeFacts';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function getGridArea(position: number) {
   if (position >= 0 && position <= 8) {
@@ -41,7 +41,8 @@ export function BoardSpace({ space }: { space: IBoardSpace }) {
   const currentLevel = propertyLevels[space.id] || 0;
 
   const [isFlipped, setIsFlipped] = useState(false);
-  const factData = placeFacts[space.name];
+  const { tCity, tFact } = useTranslation();
+  const factData = tFact(space.name);
 
   const handleFlip = () => {
     if (factData) {
@@ -87,12 +88,12 @@ export function BoardSpace({ space }: { space: IBoardSpace }) {
             </div>
           )}
           
-          <div className={cn("flex flex-col flex-1 items-center justify-start text-center p-1 relative z-10", isCorner && "justify-center")}>
-            <span className={cn("font-serif font-bold text-[8px] md:text-[11px] leading-tight text-[#4a3219] uppercase tracking-tighter mt-1", isCorner && "text-[10px] md:text-sm")}>
-              {space.name}
+          <div className={cn("flex flex-col flex-1 items-center justify-start text-center p-1 relative z-10 w-full", isCorner && "justify-center")}>
+            <span className={cn("font-serif font-bold text-[7px] md:text-[9px] leading-tight text-[#4a3219] uppercase tracking-normal mt-1 break-words break-all px-0.5 w-full", isCorner && "text-[9px] md:text-[11px]")}>
+              {tCity(space.name)}
             </span>
             {space.price && (
-              <span className="text-[10px] md:text-xs text-[#8b5a2b] mt-auto font-black font-sans mb-1">
+              <span className="text-[9px] md:text-[11px] text-[#8b5a2b] mt-auto font-black font-sans mb-1">
                 ₹{space.price}
               </span>
             )}
@@ -107,7 +108,7 @@ export function BoardSpace({ space }: { space: IBoardSpace }) {
           >
             <div className="flex-1 flex flex-col justify-center items-center w-full">
               <h4 className="font-serif font-bold text-[8px] md:text-[10px] text-[#4a3219] leading-none mb-0.5 w-full truncate px-1">
-                {space.name}
+                {tCity(space.name)}
               </h4>
               <span className="text-[5px] md:text-[6.5px] font-bold text-[#8b5a2b] uppercase tracking-wider mb-1">
                 {factData.era}
@@ -125,7 +126,7 @@ export function BoardSpace({ space }: { space: IBoardSpace }) {
 
       {/* Players on this space (anchored outside flip container) */}
       {playersOnSpace.length > 0 && (
-        <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-1 p-1 pointer-events-none z-20">
+        <div className="absolute inset-0 flex flex-wrap items-center justify-center pt-5 md:pt-6 gap-1 p-1 pointer-events-none z-20">
           {playersOnSpace.map((player) => (
             <div 
               key={player.id} 

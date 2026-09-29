@@ -1,5 +1,6 @@
 const getAudioContext = () => {
   if (typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (AudioContextClass) {
       return new AudioContextClass();
@@ -12,7 +13,7 @@ export const playSound = (type: 'coins' | 'dice' | 'build' | 'event') => {
   // Try to play the user-provided MP3 first
   const audio = new Audio(`/sounds/${type}.mp3`);
   
-  audio.play().catch((e) => {
+  audio.play().catch(() => {
     // If the file doesn't exist or fails to play, fallback to Web Audio API oscillators
     const ctx = getAudioContext();
     if (!ctx) return;

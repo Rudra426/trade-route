@@ -1,5 +1,6 @@
 export const INITIAL_BALANCE = {
   startingMoney: 1500,
   passingStartBonus: 200,
-  detentionBail: 50
+  detentionBail: 50,
+  SCHOLAR_BONUS: 50
 };

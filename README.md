@@ -1,8 +1,9 @@
 # Trade Routes: Cities of Antiquity
 
-![Trade Routes Logo / Banner Placeholder]
+**Submission for Smart India Hackathon 2026**
+**Problem Statement:** SIH26208 (Toys and games based on our civilization, history, and culture)
 
-**Trade Routes: Cities of Antiquity** is a modern, multiplayer, web-based board game heavily inspired by the classic property-trading mechanics of Monopoly. However, it replaces the modern industrial theme with a rich, immersive journey through Ancient Indian history. Players take on the roles of legendary merchants traversing the subcontinent—from the Grand Bazaar to Pataliputra—buying territories, upgrading them into Grand Palaces, trading with rivals, and navigating unexpected caravan events.
+**Trade Routes: Cities of Antiquity** is a modern, multiplayer, web-based board game heavily inspired by classic property-trading mechanics. However, it replaces the modern industrial theme with a rich, immersive journey through Ancient Indian history. Players take on the roles of legendary merchants traversing the subcontinent—from the Grand Bazaar to Pataliputra—buying territories, upgrading them into Grand Palaces, trading with rivals, and navigating unexpected caravan events.
 
 ---
 
@@ -10,7 +11,7 @@
 
 At its heart, *Trade Routes* is a game of economic strategy, negotiation, and luck. You start with a modest purse of gold and must navigate the outer rim of the board by rolling dice. 
 
-**The goal is simple:** Amass wealth, build an empire of trade halls and palaces, and bankrupt your competitors.
+**The goal is simple:** Amass wealth, build an empire of trade halls and palaces, and bankrupt your competitors while learning about India's rich heritage.
 
 ### What it does:
 - **Territory Acquisition**: Land on unowned historical cities (like Mathura, Taxila, or Kashi) and purchase them.
@@ -32,30 +33,29 @@ At its heart, *Trade Routes* is a game of economic strategy, negotiation, and lu
 This project was built from the ground up using a modern, highly responsive, and real-time capable web stack.
 
 ### Frontend
-- **Framework**: [Next.js](https://nextjs.org/) (App Router) & React 19
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router) & React 19
 - **Language**: TypeScript (Strict typing for game engine state and event payloads)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
   - Uses a heavily customized bespoke theme tailored to the Ancient Indian aesthetic (Terracotta `#e7d5b3`, Leather Brown `#5c3a21`, and deep sandstone textures).
-- **UI Components**: Built on top of [Base UI](https://base-ui.com/) and Shadcn UI primitives for accessible, unstyled structural components (Dialogs, Modals, Buttons) themed heavily via Tailwind.
-- **Animations**: [Framer Motion](https://www.framer.com/motion/) for smooth 3D token gliding, dynamic popup modals, and interactive UI feedback.
-- **3D Rendering**: Custom CSS-based 3D transforms for the realistic, physics-simulated dice rolling (`Dice3D.tsx`).
+- **UI Components**: Built on top of [Base UI](https://base-ui.com/) and Shadcn UI primitives for accessible structural components.
+- **Animations**: CSS 3D Transforms for interactive cards and [Framer Motion](https://www.framer.com/motion/) for smooth token gliding.
 
 ### State Management & Multiplayer
-- **Game Engine**: [Zustand](https://zustand-demo.pmnd.rs/) manages the complex, deeply nested single source of truth for the game (handling player balances, property ownership, turn phases, and transaction logs).
+- **Game Engine**: [Zustand](https://zustand-demo.pmnd.rs/) manages the complex, deeply nested single source of truth for the game.
 - **Realtime Sync**: [Supabase Realtime](https://supabase.com/docs/guides/realtime) channels.
-  - The game allows players to spin up unique "Room Codes".
-  - The Zustand store state is seamlessly broadcasted and synchronized across all clients in the room via Supabase Postgres Changes and broadcast channels, ensuring every dice roll and trade is instantly reflected on everyone's screen.
+  - The Zustand store state is seamlessly broadcasted and synchronized across all clients in the room via Supabase Postgres Changes.
+  - Includes robust **Optimistic Concurrency Control** via a strict version counter to prevent race conditions during simultaneous lobby joins and state syncs.
 
 ---
 
-## ✨ Features
+## ✨ Features & Recent Updates
 
-- **Seamless Multiplayer**: Create a room, share a 4-letter code, and play live with friends anywhere in the world.
-- **Smart AI Opponents**: Don't have 4 friends? Fill the lobby with AI merchants. The AI has built-in negotiation logic: it evaluates the mathematical fairness of trades, demands massive premiums for handing over monopolies, and takes its turns automatically.
-- **Advanced Trade & Diplomacy Engine**: A fully featured trading modal that allows you to offer custom combinations of properties and gold in exchange for a rival's assets.
-- **Property Management (Mortgages & Upgrades)**: Need quick cash? Mortgage your properties for half their value. Once you own a monopoly, strategically invest your gold to build up to Grand Palaces and skyrocket the rent.
-- **Thematic Sound Design**: Integrated audio hooks trigger coin clinks, building hammers, and scroll-unfurling sounds to enhance the tactile feel of the board game.
-- **Responsive Layout**: Designed to work gracefully on standard desktop monitors, giving maximum real-estate to the beautiful, centered game board while keeping the Action Chronicle and player stats pinned to the sidebar.
+- **Multilingual Support (EN / हिन्दी)**: Full localization system built-in! Switch seamlessly between English and Hindi for all UI elements, historical facts, and modal dialogues. 
+- **Interactive Educational Cards**: Property cards feature a smooth 3D flip transform. Tapping any property on the board flips the card to reveal historical facts and context about the ancient city.
+- **Robust Multiplayer**: Built with state synchronization that accounts for race conditions, dropped packets, and out-of-order payloads using an internal version tracker.
+- **Smart AI Opponents**: Fill the lobby with AI merchants that evaluate trade fairness, manage their properties, and take their turns automatically.
+- **Advanced Trade Engine**: Propose custom combinations of properties and gold to your rivals.
+- **Thematic Design**: Rich aesthetic with parchment textures, cinematic hero backgrounds, and an immersive user interface.
 
 ---
 
@@ -72,9 +72,25 @@ This project was built from the ground up using a modern, highly responsive, and
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
+   *Note: In production, ensure you have set up Row Level Security (RLS) in Supabase. See `supabase_rls_proposal.md` for policy recommendations.*
+
 3. **Run the development server:**
    ```bash
    npm run dev
    ```
 4. **Play!**
    Open [http://localhost:3000](http://localhost:3000) in your browser. Click "Begin Journey", enter a Merchant Name, and create a room!
+
+---
+
+## 🚀 Deployment Instructions (Vercel)
+
+This project is optimized for deployment on Vercel.
+
+1. Push your code to a GitHub repository.
+2. Log into [Vercel](https://vercel.com/) and click **Add New Project**.
+3. Import your GitHub repository.
+4. In the environment variables section, add:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. Click **Deploy**. Vercel will automatically detect Next.js and build the production bundle.

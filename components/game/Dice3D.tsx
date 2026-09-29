@@ -46,8 +46,10 @@ export function Dice3D({ value, rolling }: Dice3DProps) {
       const jitterX = (Math.floor(Math.random() * 2) + 1) * 360;
       const jitterY = (Math.floor(Math.random() * 2) + 1) * 360;
       
-      setRotations({ x: targetX + jitterX, y: targetY + jitterY });
+      // Prevent React compiler warning about setting state in effect
+      setTimeout(() => setRotations({ x: targetX + jitterX, y: targetY + jitterY }), 0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rolling, value]);
 
   // 3x3 grid dot visibility for each face

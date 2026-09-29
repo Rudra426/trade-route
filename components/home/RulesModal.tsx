@@ -48,7 +48,7 @@ export function RulesModal() {
               <ul className="list-disc list-inside space-y-2 ml-2">
                 <li><strong>Roll the Bones:</strong> Roll the dice to move your caravan. Doubles grant another turn!</li>
                 <li><strong>Acquire Territory:</strong> Unowned cities may be purchased for their Title Deed.</li>
-                <li><strong>Pay Tolls:</strong> Landing on a rival's city requires paying a toll based on developments.</li>
+                <li><strong>Pay Tolls:</strong> Landing on a rival&apos;s city requires paying a toll based on developments.</li>
               </ul>
             </section>
 

@@ -9,6 +9,7 @@ import { TurnPanel } from '@/components/game/TurnPanel';
 import { ActionLog } from '@/components/game/ActionLog';
 import { supabase } from '@/utils/supabase';
 import { toast } from 'sonner';
+import { ScrollOfHistoryModal } from '@/components/game/ScrollOfHistoryModal';
 
 import { Suspense } from 'react';
 
@@ -36,8 +37,8 @@ function PlayPageContent() {
     }
 
     // ONLINE MULTIPLAYER LOGIC
-    let sub: any;
-    let unsubStore: any;
+    let sub: ReturnType<typeof supabase.channel>;
+    let unsubStore: () => void;
 
     const setupOnlineGame = async () => {
       try {
@@ -48,13 +49,12 @@ function PlayPageContent() {
           return;
         }
 
-        let isHost = false;
-
         // Initialize state if empty
         if (!data.game_state || Object.keys(data.game_state).length === 0) {
           const winCondition = searchParams.get('win') as 'CLASSIC' | 'TRADE_DOMINANCE' || 'CLASSIC';
           const aiTurnSpeed = searchParams.get('speed') as 'NORMAL' | 'FAST' || 'NORMAL';
-          useGameStore.getState().initGame([], winCondition, aiTurnSpeed); // Empty game
+          const historyQuizEnabled = searchParams.get('quiz') !== 'false';
+          useGameStore.getState().initGame([], winCondition, aiTurnSpeed, historyQuizEnabled); // Empty game
           useGameStore.getState().setPhase('LOBBY');
           useGameStore.getState().addPlayerToLobby({
             id: 'p1', name: playerName || 'Host', token: 'elephant', color: '#ea580c', isAI: false
@@ -77,7 +77,7 @@ function PlayPageContent() {
               useGameStore.getState().addPlayerToLobby({
                 id: nextId,
                 name: playerName || `Player ${currentPlayers.length + 1}`,
-                token: tokens[currentPlayers.length] as any,
+                token: tokens[currentPlayers.length] as 'elephant' | 'camel' | 'ship' | 'horse',
                 color: colors[currentPlayers.length],
                 isAI: false
               });
@@ -90,9 +90,15 @@ function PlayPageContent() {
         // Subscribe to remote changes
         sub = supabase.channel(`room:${roomCode}-${Math.random()}`)
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, (payload) => {
-            isRemoteUpdate.current = true;
-            useGameStore.setState(payload.new.game_state);
-            isRemoteUpdate.current = false;
+            const remoteVersion = payload.new.game_state?.version || 0;
+            const localVersion = useGameStore.getState().version || 0;
+            
+            // Only apply updates that are newer than our local state
+            if (remoteVersion > localVersion) {
+              isRemoteUpdate.current = true;
+              useGameStore.setState(payload.new.game_state);
+              isRemoteUpdate.current = false;
+            }
           })
           .subscribe();
 
@@ -117,10 +123,11 @@ function PlayPageContent() {
       }
       if (unsubStore) unsubStore();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomCode, playerName, router]);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   if (!mounted || players.length === 0) return null;
@@ -134,6 +141,8 @@ function PlayPageContent() {
         <GameBoard />
       </div>
       
+      <ScrollOfHistoryModal />
+
       {/* Right side: Panels */}
       <div className="w-full md:w-[450px] bg-stone-900/90 backdrop-blur-md border-l border-stone-800 flex flex-col h-full overflow-y-auto z-10 shadow-2xl shrink-0">
         <TurnPanel />

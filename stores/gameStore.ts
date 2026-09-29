@@ -42,23 +42,35 @@ interface GameStore extends GameState {
   initGame: (
     players: Omit<Player, 'money' | 'position' | 'isBankrupt' | 'isInDetention' | 'detentionTurns' | 'properties' | 'mortgagedProperties' | 'isReady'>[],
     winCondition?: 'CLASSIC' | 'TRADE_DOMINANCE',
-    aiTurnSpeed?: 'NORMAL' | 'FAST'
+    aiTurnSpeed?: 'NORMAL' | 'FAST',
+    historyQuizEnabled?: boolean
   ) => void;
   addPlayerToLobby: (player: Omit<Player, 'money' | 'position' | 'isBankrupt' | 'isInDetention' | 'detentionTurns' | 'properties' | 'mortgagedProperties' | 'isReady'>) => void;
   togglePlayerReady: (playerId: string) => void;
   startGame: () => void;
+  awardScholarBonus: (playerId: string) => void;
 }
 
 export const useGameStore = create<GameStore>()(
   persist(
-    (set, get) => ({
-  players: [],
-  currentPlayerIndex: 0,
-  phase: 'PRE_ROLL',
-  round: 1,
+    (originalSet, get) => {
+      const set: typeof originalSet = (partial, replace) => {
+        originalSet((state) => {
+          const nextState = typeof partial === 'function' ? (partial as any)(state) : partial;
+          return { ...nextState, version: (state.version || 0) + 1 };
+        }, replace);
+      };
+
+      return {
+        version: 0,
+        players: [],
+        currentPlayerIndex: 0,
+        phase: 'PRE_ROLL',
+        round: 1,
   maxRounds: 20,
   targetWealth: 5000,
   logs: [],
+  historyEvents: [],
   currentEventCard: null,
   propertyLevels: {},
   currentTrade: null,
@@ -66,6 +78,9 @@ export const useGameStore = create<GameStore>()(
   hasRolledDoubles: false,
   winCondition: 'CLASSIC',
   aiTurnSpeed: 'NORMAL',
+  historyQuizEnabled: true,
+  language: 'en',
+  setLanguage: (lang) => set({ language: lang }),
 
   rollDice: () => {
     const die1 = Math.floor(Math.random() * 6) + 1;
@@ -149,11 +164,16 @@ export const useGameStore = create<GameStore>()(
 
     if (!space) return { phase: 'POST_ACTION' };
 
+    const newHistoryEvents = [...state.historyEvents];
+    if (placeFacts[space.name]) {
+      newHistoryEvents.push({ id: Math.random().toString(), spaceId: space.id, playerId: player.id });
+    }
+
     if (space.type === 'PROPERTY' || space.type === 'RESOURCE' || space.type === 'TRANSPORT') {
       const owner = players.find(p => p.properties.includes(space.id));
       if (owner) {
         if (owner.id !== player.id) {
-          if (owner.mortgagedProperties.includes(space.id)) {
+          if ((owner.mortgagedProperties || []).includes(space.id)) {
             logs.push(`${space.name} is mortgaged, so ${player.name} pays no toll.`);
             return { players, phase: 'POST_ACTION', logs };
           }
@@ -164,30 +184,26 @@ export const useGameStore = create<GameStore>()(
           owner.money += rent;
           playSound('coins');
           logs.push(`${player.name} paid ₹${rent} in tolls to ${owner.name} at ${space.name}`);
-          const factData = placeFacts[space.name];
-          if (factData) {
-            logs.push(`FACT:${space.name} (${factData.era}) — ${factData.fact}`);
-          }
         }
-        return { players, phase: 'POST_ACTION', logs };
+        return { players, phase: 'POST_ACTION', logs, historyEvents: newHistoryEvents };
       } else {
-        return { phase: 'BUY_PROPERTY_PROMPT' };
+        return { phase: 'BUY_PROPERTY_PROMPT', historyEvents: newHistoryEvents };
       }
     } else if (space.type === 'TAX') {
       player.money -= 100;
       logs.push(`${player.name} paid ₹100 royal tribute at ${space.name}`);
-      return { players, phase: 'POST_ACTION', logs };
+      return { players, phase: 'POST_ACTION', logs, historyEvents: newHistoryEvents };
     } else if (space.type === 'GO_TO_DETENTION') {
       player.position = 8;
       player.isInDetention = true;
       logs.push(`Guards captured ${player.name}! Sent to Detention.`);
-      return { players, phase: 'POST_ACTION', logs };
+      return { players, phase: 'POST_ACTION', logs, historyEvents: newHistoryEvents };
     } else if (space.type === 'EVENT') {
       const randomCard = eventCards[Math.floor(Math.random() * eventCards.length)];
-      return { phase: 'DRAW_EVENT_CARD', currentEventCard: randomCard };
+      return { phase: 'DRAW_EVENT_CARD', currentEventCard: randomCard, historyEvents: newHistoryEvents };
     }
 
-    return { phase: 'POST_ACTION' };
+    return { phase: 'POST_ACTION', historyEvents: newHistoryEvents };
   }),
 
   buyProperty: () => set((state) => {
@@ -206,10 +222,6 @@ export const useGameStore = create<GameStore>()(
       player.properties.push(space.id);
       playSound('coins');
       logs.push(`${player.name} seized control of ${space.name} for ₹${space.price}`);
-      const factData = placeFacts[space.name];
-      if (factData) {
-        logs.push(`FACT:${space.name} (${factData.era}) — ${factData.fact}`);
-      }
       
       if (state.winCondition === 'TRADE_DOMINANCE' && checkTradeDominance(player)) {
         logs.push(`${player.name} has achieved Trade Dominance and wins the game!`);
@@ -219,7 +231,7 @@ export const useGameStore = create<GameStore>()(
     return { players, phase: 'POST_ACTION', logs };
   }),
 
-  skipProperty: () => set((state) => {
+  skipProperty: () => set(() => {
     return { phase: 'POST_ACTION' };
   }),
 
@@ -249,10 +261,6 @@ export const useGameStore = create<GameStore>()(
       const newLevels = { ...state.propertyLevels, [propertyId]: currentLevel + 1 };
       playSound('build');
       logs.push(`${player.name} built an upgrade at ${space.name} for ₹${space.upgradeCost}`);
-      const factData = placeFacts[space.name];
-      if (factData) {
-        logs.push(`FACT:${space.name} (${factData.era}) — ${factData.fact}`);
-      }
       return { players, propertyLevels: newLevels, logs };
     }
 
@@ -274,15 +282,12 @@ export const useGameStore = create<GameStore>()(
       return { logs };
     }
 
-    if (player.properties.includes(propertyId) && !player.mortgagedProperties.includes(propertyId)) {
+    if (player.properties.includes(propertyId) && !(player.mortgagedProperties || []).includes(propertyId)) {
       const mortgageValue = Math.floor(space.price / 2);
       player.money += mortgageValue;
+      player.mortgagedProperties = player.mortgagedProperties || [];
       player.mortgagedProperties.push(propertyId);
       logs.push(`${player.name} mortgaged ${space.name} for ₹${mortgageValue}`);
-      const factData = placeFacts[space.name];
-      if (factData) {
-        logs.push(`FACT:${space.name} (${factData.era}) — ${factData.fact}`);
-      }
       return { players, logs };
     }
 
@@ -298,16 +303,12 @@ export const useGameStore = create<GameStore>()(
     if (player.isInDetention) return state;
     if (!space || !space.price) return state;
 
-    if (player.mortgagedProperties.includes(propertyId)) {
+    if ((player.mortgagedProperties || []).includes(propertyId)) {
       const unmortgageCost = Math.floor((space.price / 2) * 1.1); // 10% interest
       if (player.money >= unmortgageCost) {
         player.money -= unmortgageCost;
-        player.mortgagedProperties = player.mortgagedProperties.filter(id => id !== propertyId);
+        player.mortgagedProperties = (player.mortgagedProperties || []).filter(id => id !== propertyId);
         logs.push(`${player.name} reclaimed ${space.name} for ₹${unmortgageCost}`);
-        const factData = placeFacts[space.name];
-        if (factData) {
-          logs.push(`FACT:${space.name} (${factData.era}) — ${factData.fact}`);
-        }
         return { players, logs };
       } else {
         logs.push(`Not enough gold to unmortgage ${space.name}. Need ₹${unmortgageCost}.`);
@@ -509,7 +510,7 @@ export const useGameStore = create<GameStore>()(
 
   setPhase: (phase) => set({ phase }),
 
-  initGame: (initialPlayers, winCondition = 'CLASSIC', aiTurnSpeed = 'NORMAL') => set(() => {
+  initGame: (initialPlayers, winCondition = 'CLASSIC', aiTurnSpeed = 'NORMAL', historyQuizEnabled = true) => set(() => {
     const players: Player[] = initialPlayers.map(p => ({
       ...p,
       money: INITIAL_BALANCE.startingMoney,
@@ -527,13 +528,15 @@ export const useGameStore = create<GameStore>()(
       phase: 'PRE_ROLL',
       round: 1,
       logs: ['The caravans depart!'],
+      historyEvents: [],
       currentEventCard: null,
       propertyLevels: {},
       currentTrade: null,
       doublesCount: 0,
       hasRolledDoubles: false,
       winCondition,
-      aiTurnSpeed
+      aiTurnSpeed,
+      historyQuizEnabled
     };
   }),
 
@@ -572,10 +575,26 @@ export const useGameStore = create<GameStore>()(
       phase: 'PRE_ROLL',
       logs: [...state.logs, 'The game has begun!']
     };
+  }),
+
+  awardScholarBonus: (playerId: string) => set((state) => {
+    const players = [...state.players];
+    const index = players.findIndex(p => p.id === playerId);
+    if (index === -1) return state;
+    
+    // Config value from balance.ts
+    const bonus = INITIAL_BALANCE.SCHOLAR_BONUS; 
+    players[index].money += bonus;
+    
+    return { 
+      players, 
+      logs: [...state.logs, `${players[index].name} earned ₹${bonus} Scholar's Bonus!`] 
+    };
   })
-    }),
+    };
+    },
     {
-      name: 'trade-routes-save',
+      name: 'trade-routes-save-v2',
     }
   )
 );

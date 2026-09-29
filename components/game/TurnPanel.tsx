@@ -13,9 +13,11 @@ import { playSound } from '@/utils/audio';
 import { LobbyPanel } from './LobbyPanel';
 import { useSearchParams } from 'next/navigation';
 import { Dice3D } from './Dice3D';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function TurnPanel() {
   const { players, currentPlayerIndex, phase, rollDice, movePlayer, resolveSpace, endTurn, round, logs, buyProperty, skipProperty, resolveEventCard, currentTrade, acceptTrade, declineTrade, declareBankruptcy } = useGameStore();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const playerName = searchParams.get('player');
   const currentPlayer = players[currentPlayerIndex];
@@ -32,7 +34,11 @@ export function TurnPanel() {
     if (logs.length > prevLogsLength.current) {
       const newLogs = logs.slice(prevLogsLength.current);
       newLogs.forEach(log => {
-        toast(log);
+        if (log.startsWith('FACT:')) {
+          toast(log.replace('FACT:', '').trim());
+        } else {
+          toast(log);
+        }
       });
       prevLogsLength.current = logs.length;
     }
@@ -198,7 +204,7 @@ export function TurnPanel() {
           isMyTurn ? (
             <div className="space-y-3">
               <Button onClick={handleRoll} className="w-full bg-gradient-to-r from-[#d2691e] to-[#8b4513] hover:from-[#b25918] hover:to-[#6b350e] text-[#fdf5e6] font-bold py-8 text-xl transition-all hover:scale-[1.02] border border-[#d2691e] shadow-[0_0_20px_rgba(210,105,30,0.5)] hover:shadow-[0_0_30px_rgba(210,105,30,0.8)] uppercase tracking-widest font-sans">
-                Roll the Bones
+                {t('rollTheBones')}
               </Button>
               <div className="text-center">
                 <button 
@@ -272,13 +278,13 @@ export function TurnPanel() {
                     variant="outline" 
                     className="w-full bg-red-900/50 text-red-200 border-red-700 hover:bg-red-800 hover:text-white py-6 text-lg uppercase tracking-wider transition-colors font-sans"
                   >
-                    Declare Bankruptcy
+                    {t('declareBankruptcy')}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Button onClick={handleEndTurn} variant="outline" className="w-full text-stone-200 border-stone-600 hover:bg-stone-800 hover:border-amber-700 hover:text-amber-500 py-6 text-lg uppercase tracking-wider transition-colors font-sans">
-                    Conclude Turn
+                  <Button onClick={handleEndTurn} variant="outline" className="w-full py-6 text-lg uppercase tracking-wider font-sans">
+                    {t('concludeTurn')}
                   </Button>
                   <div className="text-center">
                     <button 

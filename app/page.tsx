@@ -1,10 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { RulesModal } from "@/components/home/RulesModal";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Home() {
+  const { t } = useTranslation();
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <LanguageToggle />
       {/* Cinematic Background Image */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -26,12 +33,12 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row gap-6 justify-center pt-12 relative z-10">
           <Link href="/play" className="w-full sm:w-auto">
             <Button size="lg" className="w-full py-8 text-xl">
-              Begin Journey
+              {t('beginJourney')}
             </Button>
           </Link>
           <Link href="/lobby" className="w-full sm:w-auto">
             <Button size="lg" variant="secondary" className="w-full py-8 text-xl">
-              Online Lobby
+              {t('gameLobby')}
             </Button>
           </Link>
           <RulesModal />

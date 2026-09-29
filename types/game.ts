@@ -29,11 +29,16 @@ export interface GameState {
   maxRounds: number;
   targetWealth: number;
   logs: string[];
+  historyEvents: { id: string, spaceId: string, playerId: string }[];
   currentEventCard: EventCard | null;
   propertyLevels: Record<string, number>;
+  language: 'en' | 'hi';
+  setLanguage: (lang: 'en' | 'hi') => void;
   currentTrade: TradeOffer | null;
   doublesCount: number;
   hasRolledDoubles: boolean;
   winCondition: 'CLASSIC' | 'TRADE_DOMINANCE';
   aiTurnSpeed: 'NORMAL' | 'FAST';
+  historyQuizEnabled: boolean;
+  version: number;
 }

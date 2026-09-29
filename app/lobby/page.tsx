@@ -7,6 +7,7 @@ import { supabase, generateRoomCode } from '@/utils/supabase';
 import { toast } from 'sonner';
 import { Cinzel } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
 const cinzel = Cinzel({ subsets: ['latin'] });
 
@@ -15,6 +16,7 @@ export default function LobbyPage() {
   const [playerName, setPlayerName] = useState('');
   const [winCondition, setWinCondition] = useState<'CLASSIC'|'TRADE_DOMINANCE'>('CLASSIC');
   const [aiTurnSpeed, setAiTurnSpeed] = useState<'NORMAL'|'FAST'>('NORMAL');
+  const [historyQuizEnabled, setHistoryQuizEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -29,7 +31,7 @@ export default function LobbyPage() {
       const newCode = generateRoomCode();
       
       // Attempt to create room in Supabase (will fail if DB not setup yet, which is expected for now)
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('rooms')
         .insert([{ room_code: newCode, status: 'WAITING', game_state: {} }])
         .select()
@@ -38,9 +40,9 @@ export default function LobbyPage() {
       if (error) throw error;
 
       toast.success(`Room ${newCode} created!`);
-      router.push(`/play?room=${newCode}&player=${encodeURIComponent(playerName)}&win=${winCondition}&speed=${aiTurnSpeed}`);
+      router.push(`/play?room=${newCode}&player=${encodeURIComponent(playerName)}&win=${winCondition}&speed=${aiTurnSpeed}&quiz=${historyQuizEnabled}`);
       
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
       toast.error("Database connection failed. Did you add Supabase keys to .env.local?");
     } finally {
@@ -69,7 +71,7 @@ export default function LobbyPage() {
 
       toast.success(`Joining room ${code}...`);
       router.push(`/play?room=${code}&player=${encodeURIComponent(playerName)}`);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
       toast.error("Room not found or Database connection failed.");
     } finally {
@@ -79,6 +81,7 @@ export default function LobbyPage() {
 
   return (
     <div className={cn("min-h-screen bg-stone-950 flex flex-col items-center justify-center p-4 relative overflow-hidden", cinzel.className)}>
+      <LanguageToggle />
       {/* Background patterns */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, #f5f5f4 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
       <div className="absolute inset-0 bg-gradient-to-t from-orange-950/20 to-transparent pointer-events-none" />
@@ -106,7 +109,7 @@ export default function LobbyPage() {
                 <label className="block text-xs font-bold uppercase tracking-widest text-[#8b5a2b] mb-1">Win Condition</label>
                 <select 
                   value={winCondition} 
-                  onChange={(e) => setWinCondition(e.target.value as any)}
+                  onChange={(e) => setWinCondition(e.target.value as 'CLASSIC'|'TRADE_DOMINANCE')}
                   className="w-full p-2 bg-[#fdf5e6] border border-[#d2b48c] text-sm text-[#5c3a21] font-bold outline-none cursor-pointer"
                 >
                   <option value="CLASSIC">Classic (Bankruptcy)</option>
@@ -117,13 +120,25 @@ export default function LobbyPage() {
                 <label className="block text-xs font-bold uppercase tracking-widest text-[#8b5a2b] mb-1">AI Turn Speed</label>
                 <select 
                   value={aiTurnSpeed} 
-                  onChange={(e) => setAiTurnSpeed(e.target.value as any)}
+                  onChange={(e) => setAiTurnSpeed(e.target.value as 'NORMAL'|'FAST')}
                   className="w-full p-2 bg-[#fdf5e6] border border-[#d2b48c] text-sm text-[#5c3a21] font-bold outline-none cursor-pointer"
                 >
                   <option value="NORMAL">Normal</option>
                   <option value="FAST">Fast</option>
                 </select>
               </div>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-xs font-bold uppercase tracking-widest text-[#8b5a2b] mb-1">History Quiz</label>
+              <select 
+                value={historyQuizEnabled ? 'ON' : 'OFF'} 
+                onChange={(e) => setHistoryQuizEnabled(e.target.value === 'ON')}
+                className="w-full p-2 bg-[#fdf5e6] border border-[#d2b48c] text-sm text-[#5c3a21] font-bold outline-none cursor-pointer"
+              >
+                <option value="ON">On (Scholar&apos;s Bonus Active)</option>
+                <option value="OFF">Off</option>
+              </select>
             </div>
 
             <Button 
